@@ -1,111 +1,396 @@
-# 🧮 MCP Server Course
+# 🤖 Kaayaan Strategist AI - MCP Server
 
-```
- __  __  ____ ____     ____ ___  _   _ ____  ____  _____
-|  \/  |/ ___|  _ \   / ___/ _ \| | | |  _ \/ ___|| ____|
-| |\/| | |   | |_) | | |  | | | | | | | |_) \___ \|  _|
-| |  | | |___|  __/  | |__| |_| | |_| |  _ < ___) | |___
-|_|  |_|\____|_|      \____\___/ \___/|_| \_\____/|_____|
+**Professional market structure analysis and trading signals for systematic trading analysis.**
 
-         Learn to build MCP servers fast & reliably
-```
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3%2B-blue.svg)](https://www.typescriptlang.org/)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-orange.svg)](https://modelcontextprotocol.io/)
 
-**by Ken Kai** 👨‍💻
+## 🔗 Universal Integration
 
-Tired of wrestling with MCP server setup and confusing docs? Yeah, me too. This course gets you from zero to published NPM package in minutes, not hours.
+- **📦 MCP (Model Context Protocol)** - Direct integration with Claude, Cursor, VS Code
+- **🌐 REST API** - HTTP endpoints for web services and APIs  
+- **⚡ n8n Native** - Compatible with HTTP and MCP nodes
+- **🔧 JSON-RPC** - Standard protocol for external platforms
 
-## 🎯 What You Get
+## 💰 Cost-Optimized Design
 
-This isn't just another code repo - it's a **complete learning system**:
+- **🧠 Intelligent Caching** - 15-minute TTL reduces API calls by 80%+
+- **📊 Rate Limiting** - Prevents cost spikes with configurable limits
+- **🆓 Free Primary Source** - Yahoo Finance (unlimited)  
+- **💎 Premium Fallback** - Alpha Vantage (25 calls/day free)
+- **📈 Cost Tracking** - Real-time monitoring and budget controls
 
-- ✅ **Working calculator example** (`/mcp-calculator/`) - Copy, tweak, ship
-- ✅ **Step-by-step docs** (`/docs/`) - No guesswork, just follow along
-- ✅ **NPM publishing workflow** - From code to Claude-ready in one command
-- ✅ **Beautiful response formatting** - Make your tools look professional
-- ✅ **Local testing setup** - Test before you deploy
-- ✅ **Troubleshooting guide** - When things go wrong (they will)
+## 🏗️ Production Architecture
 
-## 🚀 Get Started
+- **🔒 Memory-First Design** - No blind failures, evidence-based analysis
+- **🌍 Kuwait Timezone** - Asia/Kuwait (+03) timestamps  
+- **⚖️ LLM-Agnostic** - Works with any AI system via MCP
+- **🔄 Fallback Logic** - Yahoo Finance → Alpha Vantage → Graceful error
+- **☁️ VPS-Ready** - Docker containerization included
 
-**1. Use this template:**
+## 📊 Analysis Capabilities
+
+### 🎯 Market Structure Analysis
+- **Support & Resistance** - Key price levels identification
+- **Trend Analysis** - Moving averages and directional bias  
+- **Market Phases** - Accumulation, Markup, Distribution, Markdown
+- **Volatility Analysis** - Average True Range and risk assessment
+
+### ⚡ Trading Signals  
+- **BUY/SELL/WAIT** - Clear directional signals
+- **Confidence Scoring** - 0-100% reliability metrics
+- **Risk Management** - Stop loss and take profit levels
+- **Multiple Timeframes** - Short, Medium, Long-term analysis
+
+### 📈 Technical Indicators
+- **RSI** - Relative Strength Index with overbought/oversold signals
+- **MACD** - Moving Average Convergence Divergence with crossovers  
+- **Moving Averages** - SMA/EMA with golden/death cross detection
+- **Custom Parameters** - Configurable periods and thresholds
+
+## 🚀 Quick Start
+
+### Global Installation
+
 ```bash
-# Use GitHub's template feature or download/copy the files
-# Then navigate to your new project
-cd your-mcp-project
+npm install -g mcp-kaayaan-strategist
 ```
 
-**2. Check out the working example:**
+### Claude Desktop Integration
+
+Add to your Claude Desktop configuration file:
+
+**macOS/Linux**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "kaayaan-strategist": {
+      "command": "npx",
+      "args": ["mcp-kaayaan-strategist"],
+      "env": {
+        "MONGODB_URI": "mongodb://localhost:27017/kaayaan_strategist",
+        "REDIS_URL": "redis://localhost:6379",
+        "ALPHA_VANTAGE_API_KEY": "your_api_key_here",
+        "TIMEZONE": "Asia/Kuwait"
+      }
+    }
+  }
+}
+```
+
+**Restart Claude Desktop** to activate the server.
+
+### Claude Code Integration
+
 ```bash
-# Look at the calculator example for reference
-ls mcp-calculator/
-# See the main server code
-cat mcp-calculator/src/index.ts
+claude mcp add kaayaan-strategist npx mcp-kaayaan-strategist
+# Restart Claude Code: Ctrl+C twice, then: claude --continue
 ```
 
-**3. The docs are for Claude Code or other coding agents to help you:**
-- [`docs/mcp-basics.md`](./docs/mcp-basics.md) - MCP concepts for LLMs
-- [`docs/project-structure.md`](./docs/project-structure.md) - Templates for LLMs to copy
-- [`docs/npm-setup.md`](./docs/npm-setup.md) - Publishing workflow for LLMs
-- These docs help coding agents guide you through building MCP servers
+### n8n Integration
 
-## 💪 What Makes This Different
+Add HTTP Request nodes pointing to MCP server endpoints, or use the MCP node when available.
 
-### New to MCP?
-- **No BS** - I explain everything, no assumed knowledge
-- **Working code** - Copy, tweak, ship. Done.
-- **Real problems** - I've hit every wall so you don't have to
+### Environment Setup
 
-### Already know your stuff?
-- **Best practices built-in** - TypeScript, validation, proper error handling
-- **Production patterns** - This scales from toy project to real tool
-- **Skip the research** - Just get building
+Create `.env` file:
 
-## 📁 What's Inside
+```bash
+# MongoDB (Required for storage)
+MONGODB_URI=mongodb://localhost:27017/kaayaan_strategist
 
-```
-📦 mcp-course/
-├── 🧮 mcp-calculator/          # Complete working example
-│   ├── src/index.ts           # Main server code
-│   ├── package.json           # NPM configuration
-│   └── README.md              # Calculator-specific docs
-├── 📚 docs/                   # Your learning materials
-│   ├── mcp-basics.md          # MCP fundamentals
-│   ├── project-structure.md   # Templates & patterns
-│   ├── npm-setup.md           # Publishing workflow
-│   ├── local-testing.md       # Testing strategies
-│   └── troubleshooting.md     # Fix common issues
-└── ⚡ RESPONSE_FORMATTING.md  # Make your tools look amazing
+# Redis (Optional - improves performance)  
+REDIS_URL=redis://localhost:6379
+
+# Alpha Vantage (Optional - backup data source)
+ALPHA_VANTAGE_API_KEY=your_api_key_here
+
+# Configuration
+TIMEZONE=Asia/Kuwait
+CACHE_TTL_MINUTES=15
 ```
 
-## 🗺️ Where to Start
+### Basic Usage
 
-**Never built an MCP server?** Start here:
-1. Read `docs/mcp-basics.md` - understand what MCP is
-2. Explore `mcp-calculator/` - see a real example
-3. Follow `docs/project-structure.md` - build your first server
+```javascript
+// Analyze market structure
+await mcp.call('analyze_market_structure', {
+  symbol: 'AAPL',
+  period: '1mo',
+  include_support_resistance: true
+});
 
-**Ready to go live?**
-1. `docs/npm-setup.md` - publish to NPM
-2. `docs/local-testing.md` - test thoroughly
-3. `docs/troubleshooting.md` - when things break
+// Generate trading signal  
+await mcp.call('generate_trading_signal', {
+  symbol: 'AAPL',
+  timeframe: 'medium',
+  risk_tolerance: 'moderate'
+});
 
-## 🎯 What You'll Actually Learn
+// Calculate technical indicators
+await mcp.call('calculate_indicators', {
+  symbol: 'AAPL', 
+  indicators: ['rsi', 'macd', 'sma']
+});
+```
 
-After going through this, you'll actually know how to:
-- ✅ Build MCP servers in TypeScript with confidence
-- ✅ Handle user input validation like a pro
-- ✅ Create beautiful, professional tool responses
-- ✅ Publish to NPM and integrate with Claude
-- ✅ Debug issues when they inevitably arise
+## 🛠️ Available Tools
+
+### 1. `analyze_market_structure`
+**Comprehensive market structure analysis with support/resistance levels**
+
+**Parameters:**
+- `symbol` (string, required): Stock symbol (e.g., 'AAPL')
+- `period` (string): Analysis period - '1d', '5d', '1mo', '3mo', '6mo', '1y' (default: '1mo')
+- `include_support_resistance` (boolean): Include S/R analysis (default: true)
+- `include_volatility` (boolean): Include volatility analysis (default: true)
+- `lookback_days` (number): Analysis period in days, 5-100 (default: 20)
+
+**Example:**
+```javascript
+{
+  "symbol": "AAPL",
+  "period": "1mo", 
+  "include_support_resistance": true,
+  "include_volatility": true,
+  "lookback_days": 20
+}
+```
+
+### 2. `generate_trading_signal` 
+**Systematic BUY/SELL/WAIT signals with confidence scoring**
+
+**Parameters:**
+- `symbol` (string, required): Stock symbol
+- `timeframe` (string): 'short', 'medium', 'long' (default: 'medium')
+- `risk_tolerance` (string): 'conservative', 'moderate', 'aggressive' (default: 'moderate')
+- `include_stop_loss` (boolean): Include stop loss suggestions (default: true)
+- `include_take_profit` (boolean): Include take profit suggestions (default: true)
+- `min_confidence` (number): Minimum confidence threshold 0-100 (default: 60)
+
+**Example:**
+```javascript
+{
+  "symbol": "MSFT",
+  "timeframe": "medium",
+  "risk_tolerance": "moderate", 
+  "min_confidence": 70
+}
+```
+
+### 3. `calculate_indicators`
+**Technical indicators with human-readable interpretations**
+
+**Parameters:**
+- `symbol` (string, required): Stock symbol
+- `indicators` (array): ['rsi', 'macd', 'sma', 'ema', 'all'] (default: ['all'])
+- `period` (string): Data period for calculations (default: '1mo')
+- `rsi_period` (number): RSI period, 5-50 (default: 14)
+- `include_interpretation` (boolean): Include explanations (default: true)
+
+**Example:**
+```javascript
+{
+  "symbol": "GOOGL",
+  "indicators": ["rsi", "macd"],
+  "rsi_period": 14,
+  "include_interpretation": true
+}
+```
+
+### 4. `store_analysis`
+**Store analysis results in MongoDB with metadata**
+
+**Parameters:**
+- `symbol` (string, required): Stock symbol  
+- `analysis_type` (string, required): 'market_structure', 'trading_signal', 'technical_indicators', 'data_validation'
+- `analysis_data` (object, required): Analysis results
+- `notes` (string): Optional notes
+- `tags` (array): String tags for categorization
+- `confidence` (number): Confidence score 0-100
+
+### 5. `get_analysis_history`
+**Retrieve historical analysis records with flexible filtering**
+
+**Parameters:**
+- `symbol` (string): Filter by symbol (optional)
+- `analysis_type` (string): Filter by type (optional) 
+- `from_date` (string): Start date YYYY-MM-DD (optional)
+- `to_date` (string): End date YYYY-MM-DD (optional)
+- `limit` (number): Max results 1-100 (default: 20)
+- `sort_by` (string): 'newest', 'oldest', 'confidence', 'symbol' (default: 'newest')
+
+### 6. `validate_data_quality`
+**Data quality validation across sources**
+
+**Parameters:**
+- `symbol` (string, required): Stock symbol to validate
+- `validation_type` (string): 'basic', 'comprehensive', 'real_time' (default: 'basic')
+- `check_historical` (boolean): Include historical data (default: true)
+- `check_current` (boolean): Include current price data (default: true)
+- `max_age_minutes` (number): Max acceptable data age 1-1440 (default: 60)
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `MONGODB_URI` | MongoDB connection string | `mongodb://localhost:27017/kaayaan_strategist` | Yes |  
+| `REDIS_URL` | Redis connection URL | `redis://localhost:6379` | No |
+| `ALPHA_VANTAGE_API_KEY` | Alpha Vantage API key | None | No |
+| `TIMEZONE` | Application timezone | `Asia/Kuwait` | No |
+| `CACHE_TTL_MINUTES` | Cache TTL in minutes | `15` | No |
+| `YAHOO_RATE_LIMIT` | Yahoo requests/minute | `60` | No |
+| `ALPHA_VANTAGE_RATE_LIMIT` | Alpha Vantage requests/minute | `5` | No |
+
+### Data Sources Priority
+
+1. **Yahoo Finance** (Primary) - Unlimited, reliable, free
+2. **Alpha Vantage** (Backup) - 25 calls/day free tier, premium available
+3. **Cache** - Redis 15-minute TTL reduces external calls
+4. **Graceful Errors** - Clear messaging when data unavailable
+
+## 🐳 Docker Deployment
+
+### Basic Deployment
+
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY build ./build
+COPY .env ./
+
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+### Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  kaayaan-strategist:
+    image: mcp-kaayaan-strategist:latest
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/kaayaan_strategist
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongo
+      - redis
+      
+  mongo:
+    image: mongo:6
+    volumes:
+      - mongodb_data:/data/db
+      
+  redis:
+    image: redis:7-alpine
+    
+volumes:
+  mongodb_data:
+```
+
+## ⚠️ Important Disclaimers
+
+### 🚨 Educational Purpose Only
+- **NOT FINANCIAL ADVICE** - This tool is for educational and research purposes
+- **No Trading Recommendations** - Signals are systematic analysis, not investment advice  
+- **Risk Warning** - Trading involves significant risk of loss
+- **User Responsibility** - Always conduct your own research and risk assessment
+
+### 📊 Data Accuracy
+- **Best Effort Analysis** - Uses reliable data sources but accuracy not guaranteed
+- **Market Data Delays** - Real-time data may have delays during market hours
+- **System Dependencies** - Requires external data sources and may experience outages
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### MCP Server Not Connecting
+```bash
+# Check if server starts correctly
+npx mcp-kaayaan-strategist
+
+# Verify environment variables are set
+echo $MONGODB_URI $REDIS_URL
+```
+
+#### MongoDB Connection Issues
+```bash
+# Start MongoDB with Docker
+docker run -d --name mongo -p 27017:27017 mongo:6
+
+# Or install MongoDB locally
+brew install mongodb/brew/mongodb-community
+brew services start mongodb/brew/mongodb-community
+```
+
+#### Redis Connection Issues  
+```bash
+# Start Redis with Docker
+docker run -d --name redis -p 6379:6379 redis:7-alpine
+
+# Or install Redis locally
+brew install redis
+brew services start redis
+```
+
+#### Data Quality Issues
+- Verify internet connection for Yahoo Finance API
+- Check Alpha Vantage API key validity
+- Use `validate_data_quality` tool to diagnose issues
+
+### Performance Optimization
+
+- **Redis Caching**: Reduces API calls by 80%+ with 15-minute TTL
+- **Rate Limiting**: Prevents API quota exhaustion
+- **Data Validation**: Ensures analysis accuracy before processing
 
 ## 🤝 Contributing
 
-Spot something broken or have a better example? Send a PR.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+
+```bash
+git clone https://github.com/kaayaan/mcp-kaayaan-strategist.git
+cd mcp-kaayaan-strategist
+npm install
+cp .env.example .env
+# Edit .env with your configuration
+npm run build
+npm run inspector  # Test with MCP Inspector
+```
+
+### Running Tests
+
+```bash
+npm test                    # Run test suite
+npm run inspector          # Test MCP protocol
+npm run build && npm start # Test server directly
+```
 
 ## 📄 License
 
-MIT - Use this code however you want. Go build something cool.
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Documentation**: [Full Documentation](docs/)
+- **Issues**: [GitHub Issues](https://github.com/kaayaan/mcp-kaayaan-strategist/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/kaayaan/mcp-kaayaan-strategist/discussions)
 
 ---
 
-*Ready to build your first MCP server? Start with the [calculator example](./mcp-calculator/) and follow the [docs](./docs/)!*
+**🔬 Kaayaan Strategist AI - Systematic Market Analysis**  
+*Transforming market data into actionable insights through evidence-based technical analysis*

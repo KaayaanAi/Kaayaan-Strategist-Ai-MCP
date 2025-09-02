@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "Node16", 
-    "moduleResolution": "Node16",
+    "module": "Node16",
+    "moduleResolution": "Node16", 
     "outDir": "./build",
     "rootDir": "./src",
     "strict": true,
@@ -13,11 +13,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "build"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "build"]
 }
