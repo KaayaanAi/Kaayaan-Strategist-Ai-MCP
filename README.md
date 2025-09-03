@@ -2,10 +2,49 @@
 
 **Professional market structure analysis and trading signals for systematic trading analysis.**
 
+[![NPM Version](https://img.shields.io/npm/v/mcp-kaayaan-strategist.svg)](https://www.npmjs.com/package/mcp-kaayaan-strategist)
+[![NPM Downloads](https://img.shields.io/npm/dm/mcp-kaayaan-strategist.svg)](https://www.npmjs.com/package/mcp-kaayaan-strategist)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3%2B-blue.svg)](https://www.typescriptlang.org/)
 [![MCP](https://img.shields.io/badge/MCP-Compatible-orange.svg)](https://modelcontextprotocol.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://hub.docker.com)
+[![GitHub Issues](https://img.shields.io/github/issues/kaayaan/mcp-kaayaan-strategist.svg)](https://github.com/kaayaan/mcp-kaayaan-strategist/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/kaayaan/mcp-kaayaan-strategist.svg)](https://github.com/kaayaan/mcp-kaayaan-strategist/stargazers)
+
+## 📚 Table of Contents
+
+- [Quick Installation](#-quick-installation)
+- [Universal Integration](#-universal-integration)
+- [Features](#-features)
+- [Quick Start](#-quick-start)
+- [API Documentation](#-api-documentation)
+- [Docker Deployment](#-docker-integration)
+- [Security & Configuration](#-security--configuration)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+## 🚀 Quick Installation
+
+```bash
+# NPM Installation (Global)
+npm install -g mcp-kaayaan-strategist
+
+# Or run directly with npx
+npx mcp-kaayaan-strategist
+
+# Docker
+docker run -d \
+  -p 3000:3000 \
+  -e HTTP_MODE=true \
+  -e ALPHA_VANTAGE_API_KEY=your_key \
+  kaayaan/strategist-ai-mcp
+
+# Clone from source
+git clone https://github.com/kaayaan/mcp-kaayaan-strategist.git
+cd mcp-kaayaan-strategist
+npm install && npm run build
+```
 
 ## 🔗 Universal Integration
 

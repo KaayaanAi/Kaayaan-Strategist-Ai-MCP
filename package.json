@@ -11,7 +11,9 @@
     "build/",
     "README.md",
     "LICENSE",
-    ".env.example"
+    "CHANGELOG.md",
+    ".env.example",
+    ".env.production.example"
   ],
   "scripts": {
     "build": "tsc && chmod 755 build/index.js",
@@ -47,7 +49,17 @@
     "n8n",
     "express",
     "stdio",
-    "dual-protocol"
+    "dual-protocol",
+    "financial-analysis",
+    "stock-analysis",
+    "trading-signals",
+    "support-resistance",
+    "moving-averages",
+    "volatility-analysis",
+    "typescript",
+    "docker",
+    "educational",
+    "systematic-trading"
   ],
   "author": "Kaayaan Strategist <info@example.com>",
   "license": "MIT",
@@ -81,5 +93,19 @@
   "homepage": "https://github.com/kaayaan/mcp-kaayaan-strategist#readme",
   "bugs": {
     "url": "https://github.com/kaayaan/mcp-kaayaan-strategist/issues"
-  }
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/kaayaan"
+  },
+  "preferGlobal": true,
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
 }
