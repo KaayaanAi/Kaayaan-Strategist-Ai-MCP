@@ -58,11 +58,19 @@
 npm install -g mcp-kaayaan-strategist
 ```
 
+### 📋 **Three Integration Protocols**
+
+This server supports **three different protocols** for maximum compatibility:
+
+## 🔌 **Protocol 1: STDIO MCP (Original)**
+
+**For:** Claude Desktop, Claude Code, MCP-compatible clients
+
 ### Claude Desktop Integration
 
 Add to your Claude Desktop configuration file:
 
-**macOS/Linux**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**macOS/Linux**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
@@ -73,7 +81,7 @@ Add to your Claude Desktop configuration file:
       "args": ["mcp-kaayaan-strategist"],
       "env": {
         "MONGODB_URI": "mongodb://localhost:27017/kaayaan_strategist",
-        "REDIS_URL": "redis://localhost:6379",
+        "REDIS_URL": "redis://localhost:6379", 
         "ALPHA_VANTAGE_API_KEY": "your_api_key_here",
         "TIMEZONE": "Asia/Kuwait"
       }
@@ -91,9 +99,183 @@ claude mcp add kaayaan-strategist npx mcp-kaayaan-strategist
 # Restart Claude Code: Ctrl+C twice, then: claude --continue
 ```
 
-### n8n Integration
+## 🌐 **Protocol 2: HTTP REST API**
 
-Add HTTP Request nodes pointing to MCP server endpoints, or use the MCP node when available.
+**For:** General HTTP clients, custom integrations, web applications
+
+### Start HTTP Server
+
+```bash
+# Production
+HTTP_MODE=true npm start
+
+# Development  
+npm run dev:http
+
+# Custom port
+HTTP_MODE=true PORT=8080 npm start
+```
+
+### REST API Endpoints
+
+**Base URL:** `http://localhost:3000/api`
+
+#### Market Structure Analysis
+```bash
+curl -X POST http://localhost:3000/api/analyze-market-structure \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "AAPL",
+    "period": "1mo",
+    "include_support_resistance": true,
+    "include_volatility": true
+  }'
+```
+
+#### Trading Signal Generation
+```bash
+curl -X POST http://localhost:3000/api/generate-trading-signal \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "AAPL",
+    "timeframe": "medium", 
+    "risk_tolerance": "moderate",
+    "min_confidence": 70
+  }'
+```
+
+#### Technical Indicators
+```bash
+curl -X POST http://localhost:3000/api/calculate-indicators \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "AAPL",
+    "indicators": ["rsi", "macd"],
+    "include_interpretation": true
+  }'
+```
+
+#### Store Analysis
+```bash
+curl -X POST http://localhost:3000/api/store-analysis \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "AAPL",
+    "analysis_type": "trading_signal",
+    "analysis_data": {"signal": "BUY", "confidence": 85},
+    "notes": "Strong bullish signal"
+  }'
+```
+
+#### Get Analysis History
+```bash
+curl "http://localhost:3000/api/analysis-history?symbol=AAPL&limit=10&sort_by=newest"
+```
+
+#### Data Quality Validation
+```bash
+curl -X POST http://localhost:3000/api/validate-data-quality \
+  -H "Content-Type: application/json" \
+  -d '{
+    "symbol": "AAPL",
+    "validation_type": "comprehensive"
+  }'
+```
+
+### System Endpoints
+
+```bash
+# Health check
+curl http://localhost:3000/health
+
+# Performance metrics  
+curl http://localhost:3000/metrics
+
+# API documentation
+curl http://localhost:3000/
+```
+
+## ⚡ **Protocol 3: HTTP MCP Protocol**
+
+**For:** n8n-nodes-mcp, MCP-over-HTTP clients
+
+### n8n Integration with MCP Client Node
+
+1. **Install n8n-nodes-mcp** in your n8n instance
+2. **Add MCP Client node** to your workflow  
+3. **Configure connection:**
+   - **Transport:** HTTP Streamable
+   - **URL:** `http://localhost:3000/mcp`
+   - **Method:** POST
+
+### Direct HTTP MCP Usage
+
+#### List Available Tools
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/list", 
+    "id": 1
+  }'
+```
+
+#### Call MCP Tool
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \  
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+      "name": "generate_trading_signal",
+      "arguments": {
+        "symbol": "AAPL",
+        "timeframe": "medium"
+      }
+    },
+    "id": 2
+  }'
+```
+
+## 🐳 **Docker Integration**
+
+### HTTP Mode Docker Run
+```bash
+docker run -p 3000:3000 \
+  -e HTTP_MODE=true \
+  -e MONGODB_URI=mongodb://host.docker.internal:27017/kaayaan_strategist \
+  -e REDIS_URL=redis://host.docker.internal:6379 \
+  -e ALPHA_VANTAGE_API_KEY=your_key \
+  mcp-kaayaan-strategist
+```
+
+### n8n Docker Compose Integration
+
+```yaml
+version: '3.8'
+services:
+  kaayaan-strategist:
+    image: mcp-kaayaan-strategist
+    environment:
+      - HTTP_MODE=true
+      - MONGODB_URI=mongodb://mongo:27017/kaayaan_strategist
+      - REDIS_URL=redis://redis:6379
+      - ALPHA_VANTAGE_API_KEY=your_key
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+      - redis
+      
+  n8n:
+    image: n8nio/n8n
+    environment:
+      - N8N_MCP_KAAYAAN_STRATEGIST=http://kaayaan-strategist:3000/mcp
+    depends_on:
+      - kaayaan-strategist
+```
 
 ### Environment Setup
 

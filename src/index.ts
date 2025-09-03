@@ -1,5 +1,18 @@
 #!/usr/bin/env node
 
+/**
+ * Kaayaan Strategist AI MCP Server
+ * @fileoverview Dual-protocol MCP server supporting STDIO and HTTP modes
+ * 
+ * Protocols supported:
+ * 1. STDIO MCP (default) - For Claude Desktop integration
+ * 2. HTTP REST API + MCP-over-HTTP - For n8n and web integration
+ * 
+ * Usage:
+ * - STDIO mode: node build/index.js
+ * - HTTP mode: HTTP_MODE=true node build/index.js
+ */
+
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -8,6 +21,9 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import { redisCache } from "./services/redis.js";
 import { mongoDBService } from "./services/mongodb.js";
 import { appConfig } from "./config.js";
+
+// Import HTTP server for dual-protocol support
+import { app as httpApp } from "./http-server.js";
 
 // Import MCP tools
 import { analyzeMarketStructure } from "./tools/marketAnalysis.js";
@@ -411,24 +427,63 @@ async function main(): Promise<void> {
     // Initialize services
     await initializeServices();
     
+    // Determine server mode
+    const isHttpMode = process.env.HTTP_MODE === 'true';
+    
     // Set up graceful shutdown
-    process.on('SIGINT', async () => {
-      console.error("\n🛑 Received SIGINT, shutting down...");
+    let httpServer: any = null;
+    
+    const gracefulShutdown = async (signal: string) => {
+      console.error(`\n🛑 Received ${signal}, shutting down...`);
+      
+      if (httpServer) {
+        console.error("🌐 Closing HTTP server...");
+        httpServer.close(() => {
+          console.error("✅ HTTP server closed");
+        });
+      }
+      
       await shutdownServices();
       process.exit(0);
-    });
+    };
     
-    process.on('SIGTERM', async () => {
-      console.error("\n🛑 Received SIGTERM, shutting down...");
-      await shutdownServices();
-      process.exit(0);
-    });
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     
-    // Start MCP server
-    const transport = new StdioServerTransport();
-    await server.connect(transport);
-    
-    console.error("🎯 Kaayaan Strategist AI MCP Server running");
+    if (isHttpMode) {
+      // Start HTTP server mode
+      const port = parseInt(process.env.PORT || '3000', 10);
+      const host = process.env.HOST || '0.0.0.0';
+      
+      httpServer = httpApp.listen(port, host, () => {
+        console.error(`🌐 HTTP MCP Server running on http://${host}:${port}`);
+        console.error("📚 Protocols available:");
+        console.error("   • HTTP REST API: /api/*");
+        console.error("   • HTTP MCP Protocol: /mcp");
+        console.error("   • Health Check: /health");
+        console.error("   • Metrics: /metrics");
+        console.error("   • API Documentation: /");
+      });
+      
+      httpServer.on('error', (error: any) => {
+        if (error.code === 'EADDRINUSE') {
+          console.error(`❌ Port ${port} is already in use`);
+          process.exit(1);
+        } else {
+          console.error("❌ HTTP server error:", error);
+          process.exit(1);
+        }
+      });
+      
+    } else {
+      // Start STDIO MCP server mode (default)
+      const transport = new StdioServerTransport();
+      await server.connect(transport);
+      
+      console.error("🎯 STDIO MCP Server running");
+      console.error("📚 Protocol: Model Context Protocol via STDIO");
+      console.error("💡 For HTTP mode, set HTTP_MODE=true environment variable");
+    }
     
   } catch (error) {
     console.error("💥 Server startup failed:", (error as Error).message);
