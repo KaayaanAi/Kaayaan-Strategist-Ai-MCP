@@ -61,7 +61,7 @@
     "educational",
     "systematic-trading"
   ],
-  "author": "Kaayaan Strategist <info@example.com>",
+  "author": "Kaayaan Ai <admin@kaayaan.ai>",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
