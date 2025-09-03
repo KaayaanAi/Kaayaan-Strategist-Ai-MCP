@@ -72,7 +72,7 @@ CMD ["npm", "start"]
 LABEL org.opencontainers.image.title="Kaayaan Strategist AI MCP Server"
 LABEL org.opencontainers.image.description="Professional market analysis MCP server with dual STDIO/HTTP protocol support"
 LABEL org.opencontainers.image.version="1.0.0"
-LABEL org.opencontainers.image.authors="Kaayaan Strategist <info@kaayaan.com>"
+LABEL org.opencontainers.image.authors="Kaayaan Strategist <info@example.com>"
 LABEL org.opencontainers.image.url="https://github.com/kaayaan/mcp-kaayaan-strategist"
 LABEL org.opencontainers.image.source="https://github.com/kaayaan/mcp-kaayaan-strategist"
 LABEL org.opencontainers.image.licenses="MIT"

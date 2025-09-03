@@ -481,6 +481,67 @@ volumes:
   mongodb_data:
 ```
 
+## 🔒 Security & Configuration
+
+### 🚨 **CRITICAL: Before Public Deployment**
+
+**⚠️ NEVER commit real API keys or credentials to version control!**
+
+1. **Environment Variables Setup:**
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit with your actual credentials (NEVER commit this file)
+# .env is already in .gitignore
+```
+
+2. **Required API Keys:**
+```bash
+# Alpha Vantage - Get free key from https://www.alphavantage.co/support/#api-key
+ALPHA_VANTAGE_API_KEY=your_actual_api_key_here
+
+# MongoDB Connection
+MONGODB_URI=mongodb://username:password@host:port/database
+
+# Redis Connection  
+REDIS_URL=redis://password@host:port
+```
+
+3. **Security Best Practices:**
+- ✅ All secrets in environment variables
+- ✅ `.env` files excluded from git
+- ✅ Input validation with Zod schemas
+- ✅ Rate limiting enabled
+- ✅ No credentials in logs
+- ✅ MongoDB parameterized queries
+
+4. **Production Checklist:**
+```bash
+# Verify no secrets in code
+grep -r "api.*key" --exclude-dir=node_modules src/
+grep -r "password.*=" --exclude-dir=node_modules .
+
+# Confirm .gitignore protection
+git check-ignore .env .env.production .env.local
+```
+
+### 🛡️ **Data Protection**
+
+- **Local Processing** - Analysis happens locally, not sent to third parties
+- **Encrypted Storage** - MongoDB with authentication required
+- **Memory Cache** - Redis with password protection  
+- **API Security** - Rate limiting and input validation on all endpoints
+
+### 🔑 **API Key Management**
+
+- **Yahoo Finance** - No API key required (primary source)
+- **Alpha Vantage** - Free tier: 25 requests/day, 5 requests/minute
+- **MongoDB** - Use strong authentication for production
+- **Redis** - Always use password protection
+
+---
+
 ## ⚠️ Important Disclaimers
 
 ### 🚨 Educational Purpose Only

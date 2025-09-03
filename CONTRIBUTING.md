@@ -164,7 +164,7 @@ For new features, please:
 **Do NOT open public issues for security vulnerabilities.**
 
 Instead:
-- Email security@kaayaan.com (if available)
+- Email security@example.com (if available)
 - Use GitHub's private vulnerability reporting
 - Include detailed reproduction steps
 - Suggest potential fixes if known

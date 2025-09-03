@@ -49,7 +49,7 @@
     "stdio",
     "dual-protocol"
   ],
-  "author": "Kaayaan Strategist <info@kaayaan.com>",
+  "author": "Kaayaan Strategist <info@example.com>",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
