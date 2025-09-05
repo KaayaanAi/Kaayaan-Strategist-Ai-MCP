@@ -17,7 +17,7 @@ export interface AnalysisRecord {
   input: Record<string, any>;
   output: Record<string, any>;
   confidence?: number;
-  dataSource: "yahoo" | "alpha_vantage" | "cached";
+  dataSource: "yahoo" | "alpha_vantage" | "coingecko" | "cached";
   processingTime: number;
   version: string;
 }
@@ -25,7 +25,7 @@ export interface AnalysisRecord {
 export interface CostTrackingRecord {
   _id?: string;
   date: string;
-  source: "yahoo" | "alpha_vantage";
+  source: "yahoo" | "alpha_vantage" | "coingecko";
   endpoint: string;
   requestCount: number;
   estimatedCost: number;

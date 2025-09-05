@@ -8,7 +8,7 @@ export interface MarketData {
   low: number;
   close: number;
   volume: number;
-  source: "yahoo" | "alpha_vantage";
+  source: "yahoo" | "alpha_vantage" | "coingecko";
 }
 
 export interface QuoteData {
@@ -17,7 +17,7 @@ export interface QuoteData {
   change: number;
   changePercent: number;
   timestamp: number;
-  source: "yahoo" | "alpha_vantage";
+  source: "yahoo" | "alpha_vantage" | "coingecko";
 }
 
 export class YahooFinanceService {

@@ -19,6 +19,7 @@ const configSchema = z.object({
   // Rate Limiting (per minute)
   YAHOO_RATE_LIMIT: z.string().transform(Number).pipe(z.number().positive()).default("60"),
   ALPHA_VANTAGE_RATE_LIMIT: z.string().transform(Number).pipe(z.number().positive()).default("5"),
+  COINGECKO_RATE_LIMIT: z.string().transform(Number).pipe(z.number().positive()).default("50"),
   
   // Environment
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
@@ -55,6 +56,9 @@ export const appConfig = {
     },
     yahoo: {
       rateLimit: config.YAHOO_RATE_LIMIT,
+    },
+    coinGecko: {
+      rateLimit: config.COINGECKO_RATE_LIMIT,
     },
   },
   

@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "kaayaan-strategist": {
+      "command": "npx",
+      "args": ["mcp-kaayaan-strategist"],
+      "env": {
+        "MONGODB_URI": "mongodb://localhost:27017/kaayaan_strategist",
+        "REDIS_URL": "redis://localhost:6379",
+        "ALPHA_VANTAGE_API_KEY": "your_alpha_vantage_api_key_here",
+        "TIMEZONE": "Asia/Kuwait",
+        "CACHE_TTL_MINUTES": "15",
+        "YAHOO_RATE_LIMIT": "60",
+        "ALPHA_VANTAGE_RATE_LIMIT": "5",
+        "COINGECKO_RATE_LIMIT": "50"
+      }
+    }
+  }
+}

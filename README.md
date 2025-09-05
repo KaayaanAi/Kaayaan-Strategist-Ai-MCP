@@ -1,6 +1,6 @@
 # 🤖 Kaayaan Strategist AI - MCP Server
 
-**Professional market structure analysis and trading signals for systematic trading analysis.**
+**Professional market structure analysis and trading signals for both cryptocurrency and traditional markets.**
 
 [![NPM Version](https://img.shields.io/npm/v/mcp-kaayaan-strategist.svg)](https://www.npmjs.com/package/mcp-kaayaan-strategist)
 [![NPM Downloads](https://img.shields.io/npm/dm/mcp-kaayaan-strategist.svg)](https://www.npmjs.com/package/mcp-kaayaan-strategist)
@@ -57,7 +57,7 @@ npm install && npm run build
 
 - **🧠 Intelligent Caching** - 15-minute TTL reduces API calls by 80%+
 - **📊 Rate Limiting** - Prevents cost spikes with configurable limits
-- **🆓 Free Primary Source** - Yahoo Finance (unlimited)  
+- **🆓 Free Primary Sources** - Yahoo Finance (unlimited) + CoinGecko (50K/month)  
 - **💎 Premium Fallback** - Alpha Vantage (25 calls/day free)
 - **📈 Cost Tracking** - Real-time monitoring and budget controls
 
@@ -66,28 +66,35 @@ npm install && npm run build
 - **🔒 Memory-First Design** - No blind failures, evidence-based analysis
 - **🌍 Kuwait Timezone** - Asia/Kuwait (+03) timestamps  
 - **⚖️ LLM-Agnostic** - Works with any AI system via MCP
-- **🔄 Fallback Logic** - Yahoo Finance → Alpha Vantage → Graceful error
+- **🔄 Fallback Logic** - Smart routing: CoinGecko (crypto) / Yahoo Finance (stocks) → Alpha Vantage → Graceful error
 - **☁️ VPS-Ready** - Docker containerization included
 
 ## 📊 Analysis Capabilities
 
-### 🎯 Market Structure Analysis
-- **Support & Resistance** - Key price levels identification
-- **Trend Analysis** - Moving averages and directional bias  
-- **Market Phases** - Accumulation, Markup, Distribution, Markdown
-- **Volatility Analysis** - Average True Range and risk assessment
+### 🪙 **NEW: Cryptocurrency Support**
+- **50+ Cryptocurrencies** - Bitcoin, Ethereum, Cardano, Solana, and more
+- **Trading Pairs** - USDT, USD, BTC, ETH pair support
+- **Market Data** - Real-time prices, market cap, 24h volume
+- **CoinGecko Integration** - Primary data source for crypto markets
+- **Smart Detection** - Automatic crypto vs stock symbol recognition
+
+### 🎯 Market Structure Analysis  
+- **Support & Resistance** - Key price levels for both crypto and stocks
+- **Trend Analysis** - Moving averages and directional bias across all markets
+- **Market Phases** - Accumulation, Markup, Distribution, Markdown detection
+- **Volatility Analysis** - Average True Range and risk assessment for all assets
 
 ### ⚡ Trading Signals  
-- **BUY/SELL/WAIT** - Clear directional signals
-- **Confidence Scoring** - 0-100% reliability metrics
-- **Risk Management** - Stop loss and take profit levels
-- **Multiple Timeframes** - Short, Medium, Long-term analysis
+- **BUY/SELL/WAIT** - Clear directional signals for crypto and traditional markets
+- **Confidence Scoring** - 0-100% reliability metrics across all asset classes
+- **Risk Management** - Stop loss and take profit levels for multi-asset portfolios
+- **Multiple Timeframes** - Short, Medium, Long-term analysis for any symbol
 
 ### 📈 Technical Indicators
-- **RSI** - Relative Strength Index with overbought/oversold signals
-- **MACD** - Moving Average Convergence Divergence with crossovers  
+- **RSI** - Relative Strength Index with crypto-optimized parameters
+- **MACD** - Moving Average Convergence Divergence for all markets
 - **Moving Averages** - SMA/EMA with golden/death cross detection
-- **Custom Parameters** - Configurable periods and thresholds
+- **Custom Parameters** - Configurable periods for different asset volatilities
 
 ## 🚀 Quick Start
 
@@ -666,13 +673,34 @@ npm run build && npm start # Test server directly
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## 🆘 Support & Community
 
+### 📚 Documentation & Support
 - **Documentation**: [Full Documentation](docs/)
 - **Issues**: [GitHub Issues](https://github.com/kaayaan/mcp-kaayaan-strategist/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/kaayaan/mcp-kaayaan-strategist/discussions)
+- **Security**: [Security Guidelines](SECURITY.md)
+
+### 🌐 Community
+- **🟣 Discord Community**: [Join our Discord](https://discord.com/channels/1413326280518140014/1413326281487155241)
+- **📢 Telegram Channel**: [Follow @KaayaanAi](https://t.me/KaayaanAi)
+
+---
+
+## 🔐 Security
+
+This project follows strict security practices. Before using in production:
+
+1. **Copy** `.env.example` to `.env`
+2. **Configure** your API keys and database credentials
+3. **Never** commit your `.env` file to version control
+4. **Review** [SECURITY.md](SECURITY.md) for complete guidelines
+
+⚠️ **Important**: This tool provides educational analysis only. **Not financial advice.**
 
 ---
 
 **🔬 Kaayaan Strategist AI - Systematic Market Analysis**  
 *Transforming market data into actionable insights through evidence-based technical analysis*
+
+**By**: [Kaayaan Ai](https://kaayaan.ai)

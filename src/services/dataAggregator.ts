@@ -1,15 +1,18 @@
 import { YahooFinanceService, type MarketData, type QuoteData } from "./yahooFinance.js";
 import { AlphaVantageService } from "./alphaVantage.js";
+import { CoinGeckoService } from "./coinGecko.js";
 import { redisCache } from "./redis.js";
 import { mongoDBService } from "./mongodb.js";
 
 export class DataAggregator {
   private yahooService: YahooFinanceService;
   private alphaService: AlphaVantageService;
+  private coinGeckoService: CoinGeckoService;
 
   constructor() {
     this.yahooService = new YahooFinanceService();
     this.alphaService = new AlphaVantageService();
+    this.coinGeckoService = new CoinGeckoService();
   }
 
   /**
@@ -17,7 +20,7 @@ export class DataAggregator {
    */
   async getQuote(symbol: string): Promise<{
     data: QuoteData | null;
-    source: "cached" | "yahoo" | "alpha_vantage";
+    source: "cached" | "yahoo" | "alpha_vantage" | "coingecko";
     fromCache: boolean;
   }> {
     const cacheKey = `quote:${symbol.toUpperCase()}`;
@@ -28,7 +31,28 @@ export class DataAggregator {
       return { data: cached, source: "cached", fromCache: true };
     }
 
-    // Try Yahoo Finance first
+    // Check if this is a cryptocurrency symbol
+    const isCrypto = CoinGeckoService.isCryptoSymbol(symbol);
+    
+    // For crypto symbols, try CoinGecko first
+    if (isCrypto) {
+      try {
+        const coinGeckoData = await this.coinGeckoService.getQuote(symbol);
+        if (coinGeckoData) {
+          // Cache the result
+          await redisCache.set("quotes", symbol.toUpperCase(), coinGeckoData);
+          
+          // Track cost (CoinGecko is free)
+          await mongoDBService.trackCost("coingecko", "quote", 1, 0, symbol);
+          
+          return { data: coinGeckoData, source: "coingecko", fromCache: false };
+        }
+      } catch (error) {
+        console.error(`CoinGecko quote failed for ${symbol}:`, (error as Error).message);
+      }
+    }
+
+    // Try Yahoo Finance (works for both stocks and some crypto)
     try {
       const yahooData = await this.yahooService.getQuote(symbol);
       if (yahooData) {
@@ -74,7 +98,7 @@ export class DataAggregator {
     interval: "1m" | "5m" | "15m" | "1h" | "1d" = "1d"
   ): Promise<{
     data: MarketData[] | null;
-    source: "cached" | "yahoo" | "alpha_vantage";
+    source: "cached" | "yahoo" | "alpha_vantage" | "coingecko";
     fromCache: boolean;
   }> {
     const cacheKey = `historical:${symbol.toUpperCase()}:${period}:${interval}`;
@@ -85,7 +109,39 @@ export class DataAggregator {
       return { data: cached, source: "cached", fromCache: true };
     }
 
-    // Try Yahoo Finance first
+    // Check if this is a cryptocurrency symbol
+    const isCrypto = CoinGeckoService.isCryptoSymbol(symbol);
+    
+    // For crypto symbols, try CoinGecko first (daily data only)
+    if (isCrypto && interval === "1d") {
+      try {
+        // Convert period to days for CoinGecko
+        const periodToDays = {
+          "1d": 1,
+          "5d": 5,
+          "1mo": 30,
+          "3mo": 90,
+          "6mo": 180,
+          "1y": 365
+        };
+        const days = periodToDays[period] || 30;
+        
+        const coinGeckoData = await this.coinGeckoService.getHistoricalData(symbol, days);
+        if (coinGeckoData && coinGeckoData.length > 0) {
+          // Cache with longer TTL for historical data (1 hour)
+          await redisCache.set("historical", cacheKey, coinGeckoData, 3600);
+          
+          // Track cost (CoinGecko is free)
+          await mongoDBService.trackCost("coingecko", "historical", 1, 0, symbol);
+          
+          return { data: coinGeckoData, source: "coingecko", fromCache: false };
+        }
+      } catch (error) {
+        console.error(`CoinGecko historical data failed for ${symbol}:`, (error as Error).message);
+      }
+    }
+
+    // Try Yahoo Finance (works for both stocks and some crypto)
     try {
       const yahooData = await this.yahooService.getHistoricalData(symbol, period, interval);
       if (yahooData && yahooData.length > 0) {
@@ -128,7 +184,7 @@ export class DataAggregator {
    */
   async searchSymbols(query: string): Promise<{
     data: Array<{ symbol: string; name: string; type: string }> | null;
-    source: "cached" | "yahoo" | "alpha_vantage";
+    source: "cached" | "yahoo" | "alpha_vantage" | "coingecko";
     fromCache: boolean;
   }> {
     const cacheKey = `search:${query.toLowerCase()}`;
@@ -142,7 +198,29 @@ export class DataAggregator {
       return { data: cached, source: "cached", fromCache: true };
     }
 
-    // Try Yahoo Finance first
+    // Check if this is likely a crypto search
+    const isCryptoQuery = CoinGeckoService.isCryptoSymbol(query) || 
+                          /crypto|coin|token|btc|eth|usdt/i.test(query);
+    
+    // For crypto-related searches, try CoinGecko first
+    if (isCryptoQuery) {
+      try {
+        const coinGeckoData = await this.coinGeckoService.searchSymbols(query);
+        if (coinGeckoData && coinGeckoData.length > 0) {
+          // Cache search results for 1 hour
+          await redisCache.set("search", query.toLowerCase(), coinGeckoData, 3600);
+          
+          // Track cost (CoinGecko is free)
+          await mongoDBService.trackCost("coingecko", "search", 1, 0, query);
+          
+          return { data: coinGeckoData, source: "coingecko", fromCache: false };
+        }
+      } catch (error) {
+        console.error(`CoinGecko search failed for ${query}:`, (error as Error).message);
+      }
+    }
+
+    // Try Yahoo Finance (good for stocks and some crypto)
     try {
       const yahooData = await this.yahooService.searchSymbols(query);
       if (yahooData && yahooData.length > 0) {
@@ -287,6 +365,10 @@ export class DataAggregator {
       available: boolean;
       rateLimitStatus: ReturnType<AlphaVantageService['getRateLimitStatus']>;
     };
+    coinGecko: {
+      available: boolean;
+      rateLimitStatus: ReturnType<CoinGeckoService['getRateLimitStatus']>;
+    };
     redis: {
       available: boolean;
       stats: Awaited<ReturnType<typeof redisCache.getStats>>;
@@ -304,6 +386,10 @@ export class DataAggregator {
       alphaVantage: {
         available: this.alphaService.isAvailable(),
         rateLimitStatus: this.alphaService.getRateLimitStatus(),
+      },
+      coinGecko: {
+        available: this.coinGeckoService.isAvailable(),
+        rateLimitStatus: this.coinGeckoService.getRateLimitStatus(),
       },
       redis: {
         available: redisCache.isAvailable(),
