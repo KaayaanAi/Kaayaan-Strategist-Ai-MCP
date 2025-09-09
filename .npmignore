@@ -1,0 +1,220 @@
+# NPM Distribution Exclusions for mcp-kaayaan-strategist
+# Only include production-ready files in NPM package
+
+# Source code (only include compiled build/)
+src/
+*.ts
+!*.d.ts
+tsconfig.json
+tsconfig.*.json
+
+# Development files
+tests/
+test/
+spec/
+__tests__/
+coverage/
+.nyc_output/
+
+# Documentation (keep README.md and CHANGELOG.md only)
+docs/
+*.md
+!README.md
+!CHANGELOG.md
+
+# Development and CI configuration
+.github/
+.vscode/
+.idea/
+.vscode/
+.gitpod.yml
+.codeclimate.yml
+.travis.yml
+.circle.yml
+.appveyor.yml
+.drone.yml
+.gitlab-ci.yml
+.jenkins.yml
+
+# Git and version control
+.git/
+.gitignore
+.gitattributes
+.gitmodules
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+.envrc
+secrets.json
+
+# Node.js and package management
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.npm/
+.yarn/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build artifacts and temporary files
+dist/
+lib/
+tmp/
+temp/
+.tmp/
+.temp/
+*.log
+*.pid
+*.seed
+*.pid.lock
+*.tgz
+*.tar.gz
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editor files
+*~
+*.swp
+*.swo
+*.sublime-*
+.editorconfig
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Runtime data
+.grunt/
+.lock-wscript
+.wafpickle-N
+.node_repl_history
+.nyc_output/
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache/
+.parcel-cache/
+
+# Next.js build output
+.next/
+
+# Nuxt.js build / generate output
+.nuxt/
+
+# Gatsby files
+.cache/
+public/
+
+# Storybook build outputs
+.out/
+.storybook-out/
+
+# Temporary folders
+.tmp/
+.temp/
+
+# Docker files (keep for reference but not in NPM)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Kubernetes files
+*.yaml
+*.yml
+!docker-compose.yml
+
+# Development workflow files
+CONTRIBUTING.md
+DEVELOPMENT.md
+TODO.md
+NOTES.md
+TESTING_CHECKLIST.md
+PRODUCTION_READINESS_REPORT.md
+GITHUB_RELEASE_CHECKLIST.md
+RELEASE_WORKFLOW.md
+NPM_PUBLISHING_WORKFLOW.md
+
+# Local development configs
+claude_desktop_config.json
+.mcprc
+local-config.json
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Archive files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Certificates and keys
+*.pem
+*.key
+*.crt
+*.cert
+*.p12
+*.pfx
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache directories
+.cache/
+.npm/
+.yarn/
+.pnpm-store/
