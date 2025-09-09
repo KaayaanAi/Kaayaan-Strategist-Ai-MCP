@@ -29,25 +29,56 @@ export interface MovingAverageResult {
 export class TechnicalIndicators {
   
   /**
-   * Calculate Simple Moving Average (SMA)
+   * Calculate Simple Moving Average (SMA) with input validation
    */
   static calculateSMA(data: MarketData[], period: number): IndicatorResult[] {
-    if (data.length < period) {
+    // Input validation
+    if (!Array.isArray(data) || data.length === 0) {
+      return [];
+    }
+    
+    if (!Number.isInteger(period) || period <= 0 || period > data.length) {
+      return [];
+    }
+    
+    // Validate data integrity
+    const validData = data.filter(d => 
+      d && 
+      typeof d.close === 'number' && 
+      isFinite(d.close) && 
+      d.close > 0 &&
+      typeof d.timestamp === 'number' &&
+      isFinite(d.timestamp)
+    );
+    
+    if (validData.length < period) {
       return [];
     }
 
     const results: IndicatorResult[] = [];
     
-    for (let i = period - 1; i < data.length; i++) {
+    for (let i = period - 1; i < validData.length; i++) {
       let sum = 0;
+      let validPrices = 0;
+      
       for (let j = i - period + 1; j <= i; j++) {
-        sum += data[j].close;
+        const price = validData[j].close;
+        if (isFinite(price) && price > 0) {
+          sum += price;
+          validPrices++;
+        }
       }
       
-      results.push({
-        value: sum / period,
-        timestamp: data[i].timestamp,
-      });
+      // Only calculate if we have enough valid prices
+      if (validPrices >= Math.floor(period * 0.8)) { // Allow 20% missing data
+        const smaValue = sum / validPrices;
+        if (isFinite(smaValue) && smaValue > 0) {
+          results.push({
+            value: smaValue,
+            timestamp: validData[i].timestamp,
+          });
+        }
+      }
     }
 
     return results;

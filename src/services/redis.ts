@@ -52,6 +52,16 @@ export class RedisCache {
   }
 
   /**
+   * Get the Redis client instance (for health checks and direct access)
+   */
+  getClient(): RedisClientType {
+    if (!this.client) {
+      throw new Error('Redis client not available. Connection may be down.');
+    }
+    return this.client;
+  }
+
+  /**
    * Generate cache key with prefix
    */
   private generateKey(category: string, identifier: string): string {

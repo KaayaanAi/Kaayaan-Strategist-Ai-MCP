@@ -4,9 +4,12 @@ import "dotenv/config";
 const configSchema = z.object({
   // MongoDB Configuration
   MONGODB_URI: z.string().default("mongodb://localhost:27017/kaayaan_strategist"),
+  MONGO_ROOT_USERNAME: z.string().optional(),
+  MONGO_ROOT_PASSWORD: z.string().optional(),
   
   // Redis Configuration
   REDIS_URL: z.string().default("redis://localhost:6379"),
+  REDIS_PASSWORD: z.string().optional(),
   
   // Alpha Vantage API Key (backup data source)
   ALPHA_VANTAGE_API_KEY: z.string().optional(),
@@ -23,9 +26,9 @@ const configSchema = z.object({
   
   // Universal MCP Server Configuration
   HTTP_MODE: z.string().transform((val) => val === 'true').default("false"),
-  PORT: z.string().transform(Number).pipe(z.number().positive()).default("3000"),
+  PORT: z.string().transform(Number).pipe(z.number().positive()).default("4000"),
   HOST: z.string().default("0.0.0.0"),
-  WEBSOCKET_PORT: z.string().transform(Number).pipe(z.number().positive()).default("3001"),
+  WEBSOCKET_PORT: z.string().transform(Number).pipe(z.number().positive()).default("4001"),
   
   // Security Configuration
   API_KEY: z.string().optional(),
@@ -57,11 +60,14 @@ export const appConfig = {
   // Database
   mongodb: {
     uri: config.MONGODB_URI,
+    username: config.MONGO_ROOT_USERNAME,
+    password: config.MONGO_ROOT_PASSWORD,
   },
   
   // Cache
   redis: {
     url: config.REDIS_URL,
+    password: config.REDIS_PASSWORD,
     ttlMinutes: config.CACHE_TTL_MINUTES,
   },
   

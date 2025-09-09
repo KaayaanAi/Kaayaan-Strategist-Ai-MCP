@@ -220,17 +220,64 @@ const tools: MCPToolDefinition[] = [
 
 const app = express();
 
-// Security middleware
+// Enhanced Security middleware
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"]
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"]
     }
-  }
+  },
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true
+  },
+  noSniff: true,
+  frameguard: { action: 'deny' },
+  xssFilter: true,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  permittedCrossDomainPolicies: false,
+  hidePoweredBy: true
 }));
+
+// Additional security headers
+app.use((req, res, next) => {
+  // Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'DENY');
+  
+  // Prevent MIME type sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Enable XSS protection
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  
+  // Strict transport security for HTTPS
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  }
+  
+  // Prevent DNS prefetching
+  res.setHeader('X-DNS-Prefetch-Control', 'off');
+  
+  // Prevent Adobe Flash and PDF execution
+  res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  
+  // Remove server information
+  res.removeHeader('X-Powered-By');
+  res.removeHeader('Server');
+  
+  next();
+});
 
 // CORS configuration for Universal MCP
 const corsOptions = {
@@ -250,20 +297,58 @@ app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Rate limiting
+// Enhanced Rate limiting with security monitoring
 const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'production' ? 100 : 1000, // requests per window
+  max: appConfig.app.nodeEnv === 'production' ? 100 : 1000,
   message: {
     success: false,
     error: {
       code: 'RATE_LIMIT_EXCEEDED',
-      message: 'Too many requests. Please try again later.'
+      message: 'Too many requests. Please try again later.',
+      details: 'Rate limit exceeded. If you believe this is an error, please contact support.'
     },
     timestamp: new Date().toISOString()
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: (req) => {
+    // Use IP + User Agent hash for more accurate rate limiting
+    const userAgent = req.get('User-Agent') || 'unknown';
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    return `${ip}:${require('crypto').createHash('md5').update(userAgent).digest('hex').substring(0, 8)}`;
+  },
+  skip: (req) => {
+    // Skip rate limiting for health checks
+    return ['/health', '/metrics'].includes(req.path);
+  },
+  handler: (req, res) => {
+    console.warn(`Rate limit exceeded for ${req.ip} on ${req.path}`);
+    res.status(429).json({
+      success: false,
+      error: {
+        code: 'RATE_LIMIT_EXCEEDED',
+        message: 'Too many requests. Please try again later.'
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Strict rate limiter for sensitive endpoints
+const strictRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: appConfig.app.nodeEnv === 'production' ? 20 : 100,
+  message: {
+    success: false,
+    error: {
+      code: 'STRICT_RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests to sensitive endpoint. Please try again later.'
+    },
+    timestamp: new Date().toISOString()
+  },
+  standardHeaders: true,
+  legacyHeaders: false
 });
 
 app.use(rateLimiter);

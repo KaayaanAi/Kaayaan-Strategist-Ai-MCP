@@ -52,6 +52,9 @@ export class WebSocketMcpServer {
   private tools: MCPToolDefinition[] = [];
   private executeTool: (name: string, args: any) => Promise<any>;
   private connectionIdCounter = 0;
+  private cleanupInterval: NodeJS.Timeout | null = null;
+  private statsInterval: NodeJS.Timeout | null = null;
+  private isShuttingDown = false;
 
   constructor(tools: MCPToolDefinition[], executeToolFn: (name: string, args: any) => Promise<any>) {
     this.tools = tools;
@@ -107,21 +110,70 @@ export class WebSocketMcpServer {
 
   public async stop(): Promise<void> {
     console.error("🛑 Shutting down WebSocket MCP Server...");
+    this.isShuttingDown = true;
     
-    // Close all connections
-    for (const [ws] of this.connections) {
-      ws.close(1000, 'Server shutting down');
+    // Clear cleanup intervals
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
     }
+    
+    if (this.statsInterval) {
+      clearInterval(this.statsInterval);
+      this.statsInterval = null;
+    }
+    
+    // Close all connections gracefully
+    const closePromises: Promise<void>[] = [];
+    for (const [ws, info] of this.connections) {
+      closePromises.push(new Promise((resolve) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.close(1000, 'Server shutting down');
+          ws.once('close', () => resolve());
+          // Force close after 5 seconds
+          setTimeout(() => {
+            if (ws.readyState !== WebSocket.CLOSED) {
+              ws.terminate();
+            }
+            resolve();
+          }, 5000);
+        } else {
+          ws.terminate();
+          resolve();
+        }
+      }));
+    }
+    
+    // Wait for all connections to close
+    await Promise.allSettled(closePromises);
     
     // Close WebSocket server
     if (this.wss) {
-      this.wss.close();
+      await new Promise<void>((resolve, reject) => {
+        this.wss!.close((error) => {
+          if (error) {
+            console.error('❌ Error closing WebSocket server:', error);
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      });
       this.wss = null;
     }
     
     // Close HTTP server
     if (this.httpServer) {
-      this.httpServer.close();
+      await new Promise<void>((resolve, reject) => {
+        this.httpServer!.close((error) => {
+          if (error) {
+            console.error('❌ Error closing HTTP server:', error);
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      });
       this.httpServer = null;
     }
     
@@ -173,12 +225,28 @@ export class WebSocketMcpServer {
         connectionInfo.lastActivity = new Date();
         connectionInfo.messageCount++;
         
+        const correlationId = `${connectionId}-${connectionInfo.messageCount}`;
+        
         try {
+          // Validate message size (prevent memory exhaustion)
+          if (data.length > 1024 * 1024) { // 1MB limit
+            console.error(`❌ WebSocket message too large from ${connectionId}: ${data.length} bytes`);
+            this.sendError(ws, undefined, -32600, "Message too large", { correlationId, maxSize: "1MB" });
+            return;
+          }
+          
           const message = JSON.parse(data.toString()) as WebSocketMessage;
-          await this.handleMessage(ws, message);
+          
+          // Add correlation ID for tracing
+          console.error(`📨 WebSocket message received [${correlationId}]: ${message.method || 'unknown'}`);
+          
+          await this.handleMessage(ws, message, correlationId);
         } catch (error) {
-          console.error(`❌ WebSocket message parsing error from ${connectionId}:`, error);
-          this.sendError(ws, undefined, -32700, "Parse error", (error as Error).message);
+          console.error(`❌ WebSocket message parsing error from ${connectionId} [${correlationId}]:`, error);
+          this.sendError(ws, undefined, -32700, "Parse error", { 
+            error: (error as Error).message, 
+            correlationId 
+          });
         }
       });
 
@@ -208,12 +276,30 @@ export class WebSocketMcpServer {
 
   // ==================== Message Handling ====================
 
-  private async handleMessage(ws: WebSocket, message: WebSocketMessage): Promise<void> {
+  private async handleMessage(ws: WebSocket, message: WebSocketMessage, correlationId?: string): Promise<void> {
     const { method, params, id } = message;
 
     try {
+      // Rate limiting per connection (100 messages per minute)
+      const connectionInfo = this.connections.get(ws);
+      if (connectionInfo) {
+        const now = Date.now();
+        const oneMinuteAgo = now - 60000;
+        
+        // Simple rate limiting check
+        if (connectionInfo.messageCount > 100 && 
+            (now - connectionInfo.connected.getTime()) < 60000) {
+          this.sendError(ws, id, -32429, "Rate limit exceeded", { 
+            correlationId,
+            limit: "100 requests per minute" 
+          });
+          return;
+        }
+      }
+
       switch (method) {
         case 'tools/list':
+          console.error(`📋 Listing tools [${correlationId}]`);
           this.sendResponse(ws, id, {
             tools: this.tools
           });
@@ -221,16 +307,41 @@ export class WebSocketMcpServer {
 
         case 'tools/call':
           if (!params || !params.name) {
-            this.sendError(ws, id, -32602, "Invalid params", "Missing required parameter: name");
+            console.error(`❌ Invalid tool call parameters [${correlationId}]`);
+            this.sendError(ws, id, -32602, "Invalid params", { 
+              error: "Missing required parameter: name",
+              correlationId 
+            });
             return;
           }
           
-          const result = await this.executeTool(params.name, params.arguments || {});
-          this.sendResponse(ws, id, result);
+          console.error(`🔧 Executing tool: ${params.name} [${correlationId}]`);
+          const startTime = Date.now();
+          
+          try {
+            const result = await this.executeTool(params.name, params.arguments || {});
+            const executionTime = Date.now() - startTime;
+            
+            console.error(`✅ Tool execution completed: ${params.name} in ${executionTime}ms [${correlationId}]`);
+            this.sendResponse(ws, id, result);
+          } catch (toolError) {
+            const executionTime = Date.now() - startTime;
+            console.error(`❌ Tool execution failed: ${params.name} in ${executionTime}ms [${correlationId}]:`, toolError);
+            this.sendError(ws, id, -32000, "Tool execution failed", {
+              tool: params.name,
+              error: (toolError as Error).message,
+              correlationId,
+              executionTimeMs: executionTime
+            });
+          }
           break;
 
         case 'ping':
-          this.sendResponse(ws, id, { pong: true, timestamp: Date.now() });
+          this.sendResponse(ws, id, { 
+            pong: true, 
+            timestamp: Date.now(),
+            correlationId 
+          });
           break;
 
         case 'server/info':
@@ -240,16 +351,26 @@ export class WebSocketMcpServer {
             protocol: "websocket-mcp",
             tools: this.tools.length,
             uptime: process.uptime(),
-            connections: this.connections.size
+            connections: this.connections.size,
+            correlationId
           });
           break;
 
         default:
-          this.sendError(ws, id, -32601, "Method not found", `Unknown method: ${method}`);
+          console.error(`❌ Unknown method: ${method} [${correlationId}]`);
+          this.sendError(ws, id, -32601, "Method not found", { 
+            method,
+            correlationId,
+            availableMethods: ['tools/list', 'tools/call', 'ping', 'server/info']
+          });
       }
     } catch (error) {
-      console.error(`❌ Error handling WebSocket message '${method}':`, error);
-      this.sendError(ws, id, -32000, "Internal error", (error as Error).message);
+      console.error(`❌ Error handling WebSocket message '${method}' [${correlationId}]:`, error);
+      this.sendError(ws, id, -32000, "Internal error", {
+        method,
+        error: (error as Error).message,
+        correlationId
+      });
     }
   }
 
@@ -287,8 +408,12 @@ export class WebSocketMcpServer {
 
   private setupCleanupIntervals(): void {
     // Ping inactive connections every 30 seconds
-    setInterval(() => {
+    this.cleanupInterval = setInterval(() => {
+      if (this.isShuttingDown) return;
+      
       const now = new Date();
+      const connectionsToClose: WebSocket[] = [];
+      
       for (const [ws, info] of this.connections) {
         const inactiveTime = now.getTime() - info.lastActivity.getTime();
         
@@ -297,31 +422,55 @@ export class WebSocketMcpServer {
           try {
             ws.ping();
           } catch (error) {
-            console.error('❌ Error pinging WebSocket connection:', error);
-            this.connections.delete(ws);
+            console.error(`❌ Error pinging WebSocket connection ${info.id}:`, error);
+            connectionsToClose.push(ws);
           }
         }
         
-        // Close if inactive for more than 5 minutes
+        // Mark for closure if inactive for more than 5 minutes
         if (inactiveTime > 300000) {
-          console.error(`🧹 Closing inactive WebSocket connection: ${info.id}`);
+          console.error(`🧹 Marking inactive WebSocket connection for closure: ${info.id}`);
+          connectionsToClose.push(ws);
+        }
+      }
+      
+      // Close connections outside of the iteration
+      for (const ws of connectionsToClose) {
+        try {
+          const info = this.connections.get(ws);
           ws.close(1000, 'Connection inactive');
           this.connections.delete(ws);
+          if (info) {
+            console.error(`🧹 Closed inactive connection: ${info.id}`);
+          }
+        } catch (error) {
+          console.error('❌ Error closing inactive connection:', error);
         }
       }
     }, 30000);
 
     // Log connection stats every 5 minutes
-    setInterval(() => {
+    this.statsInterval = setInterval(() => {
+      if (this.isShuttingDown) return;
+      
       if (this.connections.size > 0) {
         console.error(`📊 WebSocket Stats: ${this.connections.size} active connections`);
         
         let totalMessages = 0;
+        let oldestConnection: Date | null = null;
+        
         for (const [, info] of this.connections) {
           totalMessages += info.messageCount;
+          if (!oldestConnection || info.connected < oldestConnection) {
+            oldestConnection = info.connected;
+          }
         }
         
         console.error(`📈 Total messages processed: ${totalMessages}`);
+        if (oldestConnection) {
+          const uptimeMinutes = Math.floor((Date.now() - oldestConnection.getTime()) / (1000 * 60));
+          console.error(`⏱️ Oldest connection: ${uptimeMinutes} minutes`);
+        }
       }
     }, 300000);
   }

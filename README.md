@@ -35,7 +35,8 @@ npx mcp-kaayaan-strategist
 
 # Docker
 docker run -d \
-  -p 3000:3000 \
+  -p 4000:4000 \
+  -p 4001:4001 \
   -e HTTP_MODE=true \
   -e ALPHA_VANTAGE_API_KEY=your_key \
   kaayaan/strategist-ai-mcp
@@ -126,14 +127,14 @@ Add to your `claude_desktop_config.json`:
 HTTP_MODE=true npx mcp-kaayaan-strategist
 
 # Test endpoints
-curl http://localhost:3000/health
-curl http://localhost:3000/api/tools
+curl http://localhost:4000/health
+curl http://localhost:4000/api/tools
 ```
 
 ### WebSocket Connection
 
 ```javascript
-const ws = new WebSocket('ws://localhost:3001/mcp');
+const ws = new WebSocket('ws://localhost:4001/mcp');
 ws.on('message', (data) => {
   console.log('MCP Response:', JSON.parse(data));
 });
@@ -272,8 +273,8 @@ WEBSOCKET_MODE=true         # Enable WebSocket protocol
 UNIVERSAL_MODE=true         # Enable all protocols
 
 # Server Configuration
-PORT=3000                   # HTTP server port
-WEBSOCKET_PORT=3001         # WebSocket server port
+PORT=4000                   # HTTP server port
+WEBSOCKET_PORT=4001         # WebSocket server port
 HOST=0.0.0.0               # Server host
 
 # API Keys
@@ -356,7 +357,8 @@ Content-Type: application/json
 # Run with environment variables
 docker run -d \
   --name kaayaan-strategist \
-  -p 3000:3000 \
+  -p 4000:4000 \
+  -p 4001:4001 \
   -e HTTP_MODE=true \
   -e ALPHA_VANTAGE_API_KEY=your_key \
   -e MONGODB_URI=your_mongodb_uri \
@@ -371,8 +373,8 @@ services:
   kaayaan-strategist:
     image: kaayaan/strategist-ai-mcp:latest
     ports:
-      - "3000:3000"
-      - "3001:3001"
+      - "4000:4000"
+      - "4001:4001"
     environment:
       - UNIVERSAL_MODE=true
       - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY}
@@ -394,7 +396,7 @@ ENABLE_AUTH=true
 
 # Use in requests
 curl -H "Authorization: Bearer your-secret-key" \
-  http://localhost:3000/api/tools
+  http://localhost:4000/api/tools
 ```
 
 ### Security Features
@@ -434,13 +436,13 @@ SSL_KEY_PATH=/path/to/key.pem
 
 ```bash
 # Health endpoint
-curl http://localhost:3000/health
+curl http://localhost:4000/health
 
 # Metrics endpoint (Prometheus compatible)
-curl http://localhost:3000/metrics
+curl http://localhost:4000/metrics
 
 # Performance monitoring
-curl http://localhost:3000/api/performance
+curl http://localhost:4000/api/performance
 ```
 
 ## Educational Notice

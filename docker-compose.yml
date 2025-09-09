@@ -1,7 +1,7 @@
 # Docker Compose for Kaayaan Strategist AI MCP Server
 # Production-ready setup with MongoDB, Redis, and HTTP mode
 
-version: '3.8'
+# Removed obsolete version field
 
 services:
   # Kaayaan Strategist MCP Server
@@ -12,13 +12,15 @@ services:
     container_name: kaayaan-strategist-mcp
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "4000:4000"
+      - "4001:4001"
     environment:
       # Server Mode
       - HTTP_MODE=true
       - NODE_ENV=production
-      - PORT=3000
+      - PORT=4000
       - HOST=0.0.0.0
+      - WEBSOCKET_PORT=4001
       
       # Database Connections
       - MONGODB_URI=mongodb://mongo:27017/kaayaan_strategist
@@ -37,7 +39,7 @@ services:
       - ALPHA_VANTAGE_RATE_LIMIT=5
       
       # Production Security
-      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:5678}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:4000,http://localhost:5678}
     depends_on:
       mongo:
         condition: service_healthy
@@ -48,15 +50,18 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.kaayaan.rule=Host(`kaayaan-strategist.local`)"
-      - "traefik.http.services.kaayaan.loadbalancer.server.port=3000"
+      - "traefik.http.services.kaayaan.loadbalancer.server.port=4000"
 
   # MongoDB Database
   mongo:
     image: mongo:6-jammy
     container_name: kaayaan-mongo
     restart: unless-stopped
-    ports:
-      - "27017:27017"
+    # SECURITY: Remove port exposure in production
+    # ports:
+    #   - "27017:27017"
+    expose:
+      - "27017"
     environment:
       - MONGO_INITDB_DATABASE=kaayaan_strategist
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-admin}
@@ -79,8 +84,11 @@ services:
     image: redis:7-alpine
     container_name: kaayaan-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    # SECURITY: Remove port exposure in production
+    # ports:
+    #   - "6379:6379"
+    expose:
+      - "6379"
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
     volumes:
       - redis_data:/data
@@ -120,11 +128,14 @@ services:
       - "traefik.http.routers.n8n.rule=Host(`n8n.local`)"
       - "traefik.http.services.n8n.loadbalancer.server.port=5678"
 
-  # Optional: MongoDB Express for database management
+  # Optional: MongoDB Express for database management (DISABLE IN PRODUCTION)
   mongo-express:
     image: mongo-express:1.0-alpine
     container_name: kaayaan-mongo-express
     restart: unless-stopped
+    # SECURITY WARNING: Disable this service in production
+    profiles:
+      - dev
     ports:
       - "8081:8081"
     environment:
@@ -140,11 +151,14 @@ services:
     networks:
       - kaayaan-network
 
-  # Optional: Redis Commander for cache management
+  # Optional: Redis Commander for cache management (DISABLE IN PRODUCTION)
   redis-commander:
     image: rediscommander/redis-commander:latest
     container_name: kaayaan-redis-commander
     restart: unless-stopped
+    # SECURITY WARNING: Disable this service in production
+    profiles:
+      - dev
     ports:
       - "8082:8081"
     environment:

@@ -40,43 +40,122 @@ export class MongoDBService {
   private client: MongoClient | null = null;
   private db: Db | null = null;
   private isConnected = false;
+  private connectionRetries = 0;
+  private maxRetries = 3;
+  private retryTimeoutId: NodeJS.Timeout | null = null;
   
   // Collections
   private analysisCollection: Collection<AnalysisRecord> | null = null;
   private costTrackingCollection: Collection<CostTrackingRecord> | null = null;
 
   /**
-   * Initialize MongoDB connection
+   * Initialize MongoDB connection with retry logic
    */
   async initialize(): Promise<void> {
     try {
-      const options: MongoClientOptions = {
-        maxPoolSize: 10,
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-      };
-
-      this.client = new MongoClient(appConfig.mongodb.uri, options);
-      
-      await this.client.connect();
-      this.db = this.client.db();
-      
-      // Initialize collections
-      this.analysisCollection = this.db.collection<AnalysisRecord>('analyses');
-      this.costTrackingCollection = this.db.collection<CostTrackingRecord>('cost_tracking');
-      
-      // Create indexes for better performance
-      await this.createIndexes();
-      
-      this.isConnected = true;
-      console.error('📊 MongoDB connected successfully');
-      
+      await this.connectWithRetry();
     } catch (error) {
-      console.error('❌ MongoDB connection failed:', (error as Error).message);
-      this.client = null;
-      this.db = null;
-      this.isConnected = false;
+      console.error('❌ MongoDB initialization failed after retries:', (error as Error).message);
       throw error;
+    }
+  }
+
+  /**
+   * Connect to MongoDB with exponential backoff retry
+   */
+  private async connectWithRetry(): Promise<void> {
+    while (this.connectionRetries < this.maxRetries) {
+      try {
+        const options: MongoClientOptions = {
+          maxPoolSize: 10,
+          serverSelectionTimeoutMS: 5000,
+          socketTimeoutMS: 45000,
+          connectTimeoutMS: 10000,
+          heartbeatFrequencyMS: 10000,
+          maxIdleTimeMS: 30000,
+        };
+
+        this.client = new MongoClient(appConfig.mongodb.uri, options);
+        
+        // Set up connection event handlers
+        this.client.on('connectionPoolCreated', () => {
+          console.error('📊 MongoDB connection pool created');
+        });
+
+        this.client.on('connectionPoolClosed', () => {
+          console.error('📊 MongoDB connection pool closed');
+          this.handleDisconnection();
+        });
+
+        this.client.on('serverHeartbeatFailed', (event) => {
+          console.error('💔 MongoDB heartbeat failed:', event.failure?.message);
+          this.handleDisconnection();
+        });
+        
+        await this.client.connect();
+        this.db = this.client.db();
+        
+        // Initialize collections
+        this.analysisCollection = this.db.collection<AnalysisRecord>('analyses');
+        this.costTrackingCollection = this.db.collection<CostTrackingRecord>('cost_tracking');
+        
+        // Create indexes for better performance
+        await this.createIndexes();
+        
+        this.isConnected = true;
+        this.connectionRetries = 0;
+        console.error('📊 MongoDB connected successfully');
+        return;
+        
+      } catch (error) {
+        this.connectionRetries++;
+        console.error(`❌ MongoDB connection attempt ${this.connectionRetries}/${this.maxRetries} failed:`, (error as Error).message);
+        
+        if (this.client) {
+          try {
+            await this.client.close();
+          } catch (closeError) {
+            // Ignore close errors
+          }
+        }
+        
+        this.client = null;
+        this.db = null;
+        this.isConnected = false;
+        
+        if (this.connectionRetries >= this.maxRetries) {
+          throw new Error(`MongoDB connection failed after ${this.maxRetries} attempts: ${(error as Error).message}`);
+        }
+        
+        // Exponential backoff: 1s, 2s, 4s
+        const backoffMs = 1000 * Math.pow(2, this.connectionRetries - 1);
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+      }
+    }
+  }
+
+  /**
+   * Handle connection disconnection and attempt reconnection
+   */
+  private handleDisconnection(): void {
+    if (this.isConnected) {
+      this.isConnected = false;
+      console.error('⚠️ MongoDB disconnected, attempting reconnection...');
+      
+      // Clear any existing retry timeout
+      if (this.retryTimeoutId) {
+        clearTimeout(this.retryTimeoutId);
+      }
+      
+      // Attempt reconnection after 5 seconds
+      this.retryTimeoutId = setTimeout(async () => {
+        try {
+          this.connectionRetries = 0;
+          await this.connectWithRetry();
+        } catch (error) {
+          console.error('❌ MongoDB reconnection failed:', (error as Error).message);
+        }
+      }, 5000);
     }
   }
 
@@ -111,6 +190,16 @@ export class MongoDBService {
    */
   isAvailable(): boolean {
     return this.isConnected && this.client !== null && this.db !== null;
+  }
+
+  /**
+   * Get the database instance (for health checks and direct access)
+   */
+  getDatabase(): Db {
+    if (!this.db) {
+      throw new Error('MongoDB database not available. Connection may be down.');
+    }
+    return this.db;
   }
 
   /**
@@ -463,6 +552,12 @@ export class MongoDBService {
    * Close MongoDB connection
    */
   async close(): Promise<void> {
+    // Clear retry timeout
+    if (this.retryTimeoutId) {
+      clearTimeout(this.retryTimeoutId);
+      this.retryTimeoutId = null;
+    }
+
     if (this.client) {
       try {
         await this.client.close();
@@ -471,6 +566,8 @@ export class MongoDBService {
         this.db = null;
         this.analysisCollection = null;
         this.costTrackingCollection = null;
+        this.connectionRetries = 0;
+        console.error('📊 MongoDB connection closed');
       } catch (error) {
         console.error('MongoDB close error:', (error as Error).message);
       }
